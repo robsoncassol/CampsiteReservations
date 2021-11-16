@@ -1,7 +1,9 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
+import com.upgrade.CampsiteReservations.config.TestRedisConfiguration;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -12,7 +14,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 
-@SpringBootTest
+@SpringBootTest(classes = {TestRedisConfiguration.class})
 class ReservationServiceTest {
 
   @Mock
@@ -20,6 +22,11 @@ class ReservationServiceTest {
 
   @InjectMocks
   private ReservationService reservationService;
+
+  @BeforeEach
+  public void startRedis(){
+
+  }
 
 
   @Test

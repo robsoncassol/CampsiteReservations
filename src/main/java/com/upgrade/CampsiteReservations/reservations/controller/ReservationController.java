@@ -19,7 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("reservation")
+@RequestMapping("reservations")
 public class ReservationController {
 
   private ReservationService reservationService;

@@ -3,3 +3,9 @@ spring:
     host: localhost
   jpa:
     show-sql: true
+
+---
+spring:
+  profiles: test
+  redis:
+    enabled: false
