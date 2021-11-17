@@ -48,6 +48,13 @@ public class ReservationController {
     return ResponseEntity.ok(reservationMapper.toDTO(reservation));
   }
 
+  @GetMapping("/{id}")
+  public ResponseEntity<ReservationDTO> getReservationById(@PathVariable("id") Long id) {
+    return reservationService.getReservationById(id)
+        .map(r -> ResponseEntity.ok(reservationMapper.toDTO(r)))
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
   @PutMapping("/{id}")
   public ResponseEntity<ReservationDTO> updateReservation(@PathVariable("id") Long id, @RequestBody @Validated ReservationDTO reservationDTO) {
     return reservationService.getReservationById(id)
@@ -56,8 +63,8 @@ public class ReservationController {
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
-  @DeleteMapping("{id}")
-  public ResponseEntity cancelReservation(Long id) {
+  @DeleteMapping("/{id}")
+  public ResponseEntity cancelReservation(@PathVariable("id") Long id) {
     return reservationService.getReservationById(id)
         .map(r -> reservationService.cancelReservation(r))
         .map(ResponseEntity::ok)
