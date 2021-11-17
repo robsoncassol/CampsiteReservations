@@ -1,6 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.controller;
 
-import com.upgrade.CampsiteReservations.config.TestRedisConfiguration;
+import com.jupitertools.springtestredis.RedisTestContainer;
 import com.upgrade.CampsiteReservations.execeptions.ExceptionDTO;
 import com.upgrade.CampsiteReservations.reservations.dto.ReservationDTO;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT, classes = {TestRedisConfiguration.class})
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+@RedisTestContainer
 class ReservationControllerTest {
 
 
@@ -143,13 +144,12 @@ class ReservationControllerTest {
         reservationDTO.setName("name");
         reservationDTO.setEmail("email@email.com");
         HttpEntity<ReservationDTO> request = new HttpEntity<>(reservationDTO);
-        ResponseEntity<ReservationDTO> responseEntity = restTemplate.exchange(
+        return restTemplate.exchange(
             getBaseUrl(),
             HttpMethod.POST,
             request,
             ReservationDTO.class
         );
-        return responseEntity;
     }
 
     @Test

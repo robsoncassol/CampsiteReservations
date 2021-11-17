@@ -78,10 +78,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>it.ozimov</groupId>
-            <artifactId>embedded-redis</artifactId>
-            <version>0.7.2</version>
-            <scope>test</scope>
+            <groupId>com.jupiter-tools</groupId>
+            <artifactId>spring-test-redis</artifactId>
+            <version>0.1</version>
         </dependency>
 
     </dependencies>
