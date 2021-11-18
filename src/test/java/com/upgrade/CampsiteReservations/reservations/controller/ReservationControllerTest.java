@@ -148,7 +148,7 @@ class ReservationControllerTest {
     private ResponseEntity<ReservationDTO> createNewReservation() {
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setArrivalDate(LocalDate.now().plusDays(10));
-        reservationDTO.setDepartureDate(LocalDate.now().plusDays(20));
+        reservationDTO.setDepartureDate(LocalDate.now().plusDays(12));
         reservationDTO.setName("name");
         reservationDTO.setEmail("email@email.com");
         HttpEntity<ReservationDTO> request = new HttpEntity<>(reservationDTO);

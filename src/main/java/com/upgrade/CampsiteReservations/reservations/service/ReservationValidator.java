@@ -12,17 +12,21 @@ public class ReservationValidator {
 
   private int maxAllowedPeriodInDays;
 
-  public ReservationValidator(@Value("campsite.reservation.max-period") int maxAllowedPeriodInDays) {
+  public ReservationValidator(@Value("${campsite.reservation.max-period}") int maxAllowedPeriodInDays) {
     this.maxAllowedPeriodInDays = maxAllowedPeriodInDays;
   }
 
   public void validated(Reservation reservation) {
-    if(reservation.getArrivalDate().isBefore(reservation.getDepartureDate())){
-      throw new InconsistentReservationDatesException("Arrival date is before departure date");
+    if(reservation.getArrivalDate().isAfter(reservation.getDepartureDate())){
+      throw new InconsistentReservationDatesException("Arrival date is after departure date");
     }
 
     if(reservation.getDepartureDate().isAfter(reservation.getArrivalDate().plusDays(maxAllowedPeriodInDays))){
       throw new InconsistentReservationDatesException(String.format("The maximum allowed period is %d days",maxAllowedPeriodInDays));
+    }
+
+    if(reservation.getDepartureDate().isEqual(reservation.getArrivalDate())){
+      throw new InconsistentReservationDatesException("The arrival date is the same as the departure date");
     }
 
   }

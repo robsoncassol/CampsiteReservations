@@ -21,17 +21,5 @@ public class CampsiteReservationsApplication {
 	@Autowired
 	private ReservationService service;
 
-	@Bean
-	public void populate(){
-
-		Reservation reservation = new Reservation();
-		reservation.setArrivalDate(LocalDate.of(2021,10,15));
-		reservation.setDepartureDate(LocalDate.of(2021,10,20));
-		reservation.setEmail("robsoncassol@gmail.com");
-		reservation.setName("robson cassol");
-		service.bookCampsite(reservation);
-
-
-	}
 
 }
