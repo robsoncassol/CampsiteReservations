@@ -1,6 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
-import com.upgrade.CampsiteReservations.config.TestRedisConfiguration;
+import com.jupitertools.springtestredis.RedisTestContainer;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,8 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 
-@SpringBootTest(classes = {TestRedisConfiguration.class})
+@SpringBootTest
+@RedisTestContainer
 class CampsiteAvailabilityServiceDBTest {
 
   @Autowired
