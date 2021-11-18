@@ -4,6 +4,10 @@ spring:
   jpa:
     show-sql: true
 
+campsite:
+  reservation:
+    max-period: 3
+
 ---
 spring:
   profiles: test
