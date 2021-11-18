@@ -61,7 +61,10 @@ public class ReservationService {
     return reservationRepository.findById(id);
   }
 
+  @Transactional
   public Boolean cancelReservation(Reservation reservation) {
+    campsiteAvailabilityService.releaseItFor(reservation);
+    reservationRepository.delete(reservation);
     return true;
   }
 }
