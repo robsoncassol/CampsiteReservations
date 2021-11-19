@@ -1,33 +1,59 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
-import com.upgrade.CampsiteReservations.reservations.exceptions.InconsistentReservationDatesException;
+import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidReservationDatesException;
+import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidSearchPeriodException;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 
 @Service
 public class ReservationValidator {
 
   private int maxAllowedPeriodInDays;
+  private int maxAllowedSearchPeriod;
 
-  public ReservationValidator(@Value("${campsite.reservation.max-period}") int maxAllowedPeriodInDays) {
+  public ReservationValidator(@Value("${campsite.reservation.max-period}") int maxAllowedPeriodInDays,
+                              @Value("${campsite.search.max-period}") int maxAllowedSearchPeriod
+  ) {
     this.maxAllowedPeriodInDays = maxAllowedPeriodInDays;
+    this.maxAllowedSearchPeriod = maxAllowedSearchPeriod;
   }
 
   public boolean validated(Reservation reservation) {
-    if(reservation.getArrivalDate().isAfter(reservation.getDepartureDate())){
-      throw new InconsistentReservationDatesException("Arrival date is after departure date");
+    Period period = Period.between(reservation.getArrivalDate(), reservation.getDepartureDate());
+    if(period.isNegative()){
+      throw new InvalidReservationDatesException("Arrival date is after departure date");
     }
 
-    if(reservation.getDepartureDate().isAfter(reservation.getArrivalDate().plusDays(maxAllowedPeriodInDays))){
-      throw new InconsistentReservationDatesException(String.format("The booking period cannot be longer than %d days",maxAllowedPeriodInDays));
+    if(ChronoUnit.DAYS.between(reservation.getArrivalDate(),reservation.getDepartureDate()) > maxAllowedPeriodInDays){
+      throw new InvalidReservationDatesException(String.format("The booking period cannot be longer than %d days",maxAllowedPeriodInDays));
     }
 
-    if(reservation.getDepartureDate().isEqual(reservation.getArrivalDate())){
-      throw new InconsistentReservationDatesException("The arrival date is the same as the departure date");
+    if(period.isZero()){
+      throw new InvalidReservationDatesException("The arrival date is the same as the departure date");
     }
 
     return true;
   }
 
+  public void validateAvailableDatesRange(LocalDate from, LocalDate to) {
+    Period period = Period.between(from, to);
+    if(period.isNegative()){
+      throw new InvalidSearchPeriodException("The final date is after the initial date");
+    }
+
+    if(ChronoUnit.DAYS.between(from,to) > maxAllowedSearchPeriod){
+      throw new InvalidSearchPeriodException(String.format("The searching period cannot be longer than %d days",maxAllowedSearchPeriod));
+    }
+
+    if(period.isZero()){
+      throw new InvalidSearchPeriodException("The initial date is the same as the end date");
+    }
+
+
+  }
 }

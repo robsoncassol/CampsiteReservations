@@ -7,6 +7,8 @@ spring:
 campsite:
   reservation:
     max-period: 3
+  search:
+    max-period: 365
 
 ---
 spring:

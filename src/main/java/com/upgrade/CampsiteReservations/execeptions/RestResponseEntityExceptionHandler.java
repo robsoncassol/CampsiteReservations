@@ -1,6 +1,6 @@
 package com.upgrade.CampsiteReservations.execeptions;
 
-import com.upgrade.CampsiteReservations.reservations.exceptions.InconsistentReservationDatesException;
+import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidReservationDatesException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +27,8 @@ public class RestResponseEntityExceptionHandler{
             .body(dto);
     }
 
-    @ExceptionHandler({ InconsistentReservationDatesException.class })
-    public ResponseEntity<ExceptionDTO> handleInconsistentReservationDatesException(InconsistentReservationDatesException e) {
+    @ExceptionHandler({ InvalidReservationDatesException.class })
+    public ResponseEntity<ExceptionDTO> handleInconsistentReservationDatesException(InvalidReservationDatesException e) {
         log.warn("Exception was thrown processing request: {}",e.getMessage(), e);
          final var dto = ExceptionDTO.builder()
             .error("Request validation error")

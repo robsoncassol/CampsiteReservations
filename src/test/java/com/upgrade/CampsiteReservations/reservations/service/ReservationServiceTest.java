@@ -20,6 +20,9 @@ class ReservationServiceTest {
   @Mock
   private CampsiteAvailabilityService campsiteAvailabilityService;
 
+  @Mock
+  private ReservationValidator reservationValidator;
+
   @InjectMocks
   private ReservationService reservationService;
 

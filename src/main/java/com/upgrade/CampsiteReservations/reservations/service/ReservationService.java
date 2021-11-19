@@ -29,6 +29,7 @@ public class ReservationService {
   }
 
   public List<LocalDate> getAvailableDates(LocalDate from, LocalDate to) {
+    reservationValidator.validateAvailableDatesRange(from,to);
     List<LocalDate> busyDays = campsiteAvailabilityService.getBusyDays(from, to);
 
     return Stream.iterate(from, date -> date.plusDays(1))
