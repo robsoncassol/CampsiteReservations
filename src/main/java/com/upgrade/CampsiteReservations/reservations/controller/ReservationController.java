@@ -64,7 +64,7 @@ public class ReservationController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity cancelReservation(@PathVariable("id") Long id) {
+  public ResponseEntity<Boolean> cancelReservation(@PathVariable("id") Long id) {
     return reservationService.getReservationById(id)
         .map(r -> reservationService.cancelReservation(r))
         .map(ResponseEntity::ok)

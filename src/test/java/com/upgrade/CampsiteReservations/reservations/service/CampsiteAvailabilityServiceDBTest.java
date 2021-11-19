@@ -26,7 +26,7 @@ class CampsiteAvailabilityServiceDBTest {
   void shouldSaveReservation() {
     Reservation reservation = new Reservation();
     reservation.setArrivalDate(LocalDate.of(2021,10,15));
-    reservation.setDepartureDate(LocalDate.of(2021,10,20));
+    reservation.setDepartureDate(LocalDate.of(2021,10,18));
     reservation.setEmail("robsoncassol@gmail.com");
     reservation.setName("robson cassol");
     Reservation saved = reservationService.bookCampsite(reservation);
@@ -36,16 +36,16 @@ class CampsiteAvailabilityServiceDBTest {
   @Test
   void shouldUpdateReservation() {
     Reservation reservation = saveReservation();
-    reservation.setDepartureDate(LocalDate.of(2021,10,19));
+    reservation.setDepartureDate(LocalDate.of(2021,10,17));
     reservationService.updateReservation(reservation.getId(),reservation);
     List<LocalDate> busyDaysByMonth = campsiteAvailabilityService.getBusyDaysByMonth(2021, Month.OCTOBER);
-    Assertions.assertEquals(4,busyDaysByMonth.size());
+    Assertions.assertEquals(2,busyDaysByMonth.size());
   }
 
   private Reservation saveReservation() {
     Reservation reservation = new Reservation();
     reservation.setArrivalDate(LocalDate.of(2021,10,15));
-    reservation.setDepartureDate(LocalDate.of(2021,10,20));
+    reservation.setDepartureDate(LocalDate.of(2021,10,18));
     reservation.setEmail("robsoncassol@gmail.com");
     reservation.setName("robson cassol");
     return reservationService.bookCampsite(reservation);

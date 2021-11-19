@@ -15,16 +15,21 @@ import java.util.stream.Stream;
 @Service
 public class ReservationService {
 
+
   private ReservationRepository reservationRepository;
   private CampsiteAvailabilityService campsiteAvailabilityService;
+  private ReservationValidator reservationValidator;
 
   ReservationService(ReservationRepository reservationRepository,
-                     CampsiteAvailabilityService campsiteAvailability) {
+                     CampsiteAvailabilityService campsiteAvailability,
+                     ReservationValidator reservationValidator) {
     this.reservationRepository = reservationRepository;
     this.campsiteAvailabilityService = campsiteAvailability;
+    this.reservationValidator = reservationValidator;
   }
 
   public List<LocalDate> getAvailableDates(LocalDate from, LocalDate to) {
+    reservationValidator.validateAvailableDatesRange(from,to);
     List<LocalDate> busyDays = campsiteAvailabilityService.getBusyDays(from, to);
 
     return Stream.iterate(from, date -> date.plusDays(1))
@@ -36,14 +41,17 @@ public class ReservationService {
 
   @Transactional
   public Reservation bookCampsite(Reservation reservation) {
+    reservationValidator.validated(reservation);
     Reservation savedReservation = reservationRepository.save(reservation);
     campsiteAvailabilityService.createAndSave(savedReservation);
     return savedReservation;
   }
 
+
   @Transactional
   public Reservation updateReservation(Long id, Reservation reservation) {
     reservation.setId(id);
+    reservationValidator.validated(reservation);
     campsiteAvailabilityService.releaseItFor(reservation);
     Reservation savedReservation = reservationRepository.save(reservation);
     campsiteAvailabilityService.createAndSave(savedReservation);
