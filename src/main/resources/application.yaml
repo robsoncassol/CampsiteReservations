@@ -4,7 +4,8 @@ spring:
     port: 6379
   jpa:
     show-sql: true
-
+  datasource:
+    driverClassName: org.h2.Driver
 campsite:
   reservation:
     max-period: 3
@@ -19,4 +20,11 @@ spring:
     host: redis
   jpa:
     show-sql: false
-
+    database: postgresql
+    hibernate:
+      ddl-auto: create
+  datasource:
+    url: jdbc:postgresql://db:5432/postgres
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver

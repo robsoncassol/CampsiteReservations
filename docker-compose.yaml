@@ -7,3 +7,8 @@ services:
     image: upgrade/campsite-reservations
     ports:
       - "8080:8080"
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
