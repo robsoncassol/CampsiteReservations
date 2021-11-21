@@ -1,5 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
+import com.upgrade.CampsiteReservations.reservations.dto.AvailableDateDTO;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.repository.ReservationRepository;
 import org.springframework.stereotype.Service;
@@ -28,13 +29,13 @@ public class ReservationService {
     this.reservationValidator = reservationValidator;
   }
 
-  public List<LocalDate> getAvailableDates(LocalDate from, LocalDate to) {
+  public List<AvailableDateDTO> getAvailableDates(LocalDate from, LocalDate to) {
     reservationValidator.validateAvailableDatesRange(from,to);
     List<LocalDate> busyDays = campsiteAvailabilityService.getBusyDays(from, to);
 
     return Stream.iterate(from, date -> date.plusDays(1))
         .limit(ChronoUnit.DAYS.between(from, to.plusDays(1)))
-        .filter(d -> !busyDays.contains(d))
+        .map(d -> new AvailableDateDTO(d, !busyDays.contains(d)))
         .collect(Collectors.toList());
   }
 

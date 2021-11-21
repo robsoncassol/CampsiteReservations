@@ -1,6 +1,7 @@
 package com.upgrade.CampsiteReservations.reservations.controller;
 
 import com.upgrade.CampsiteReservations.exceptions.ExceptionDTO;
+import com.upgrade.CampsiteReservations.reservations.dto.AvailableDateDTO;
 import com.upgrade.CampsiteReservations.reservations.dto.ReservationDTO;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.service.ReservationService;
@@ -38,20 +39,20 @@ public class ReservationController {
   @ApiOperation(
       value = "Get all available dates in the selected period",
       nickname = "getAvailableDates",
-      response = LocalDate.class
+      response = AvailableDateDTO.class
   )
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Available dates retrieved successfully", response = LocalDate.class),
-      @ApiResponse(code = 400, message = "selected period is invalid", response = ExceptionDTO.class)
+      @ApiResponse(code = 400, message = "selected period is invalid", response = AvailableDateDTO.class)
   })
   @GetMapping
-  public ResponseEntity<List<LocalDate>> getAvailableDates(
+  public ResponseEntity<List<AvailableDateDTO>> getAvailableDates(
       @ApiParam(value = "Start date of desired period (expected format ISO-8601)")
       @RequestParam("from") LocalDate from,
       @ApiParam(value = "End date of desired period (expected format ISO-8601)")
       @RequestParam("until") LocalDate until) {
 
-    List<LocalDate> availableDates = reservationService.getAvailableDates(from, until);
+    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(from, until);
     if (availableDates.isEmpty()) {
       return ResponseEntity.noContent().build();
     }

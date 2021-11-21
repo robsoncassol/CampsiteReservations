@@ -2,6 +2,7 @@ package com.upgrade.CampsiteReservations.reservations.controller;
 
 import com.jupitertools.springtestredis.RedisTestContainer;
 import com.upgrade.CampsiteReservations.exceptions.ExceptionDTO;
+import com.upgrade.CampsiteReservations.reservations.dto.AvailableDateDTO;
 import com.upgrade.CampsiteReservations.reservations.dto.ReservationDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ class ReservationControllerTest {
 
     @Test
     void testListAvailableDates() {
-        ResponseEntity<List<LocalDate>> responseEntity =
+        ResponseEntity<List<AvailableDateDTO>> responseEntity =
                 restTemplate.exchange(
                         getBaseUrl()+"?from=2021-10-20&until=2021-10-30",
                         HttpMethod.GET,
