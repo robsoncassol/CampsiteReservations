@@ -131,6 +131,35 @@
                     </compilerArgs>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>upgrade/campsite-reservations</name>
+                            <build>
+                                <tags>
+                                    <tag>latest</tag>
+                                </tags>
+                                <dockerFileDir>${project.basedir}/src/main/docker</dockerFileDir>
+                                <assembly>
+                                    <descriptorRef>artifact</descriptorRef>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <repositories>
