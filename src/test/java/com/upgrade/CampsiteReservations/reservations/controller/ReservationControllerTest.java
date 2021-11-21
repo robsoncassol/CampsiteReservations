@@ -1,7 +1,7 @@
 package com.upgrade.CampsiteReservations.reservations.controller;
 
 import com.jupitertools.springtestredis.RedisTestContainer;
-import com.upgrade.CampsiteReservations.execeptions.ExceptionDTO;
+import com.upgrade.CampsiteReservations.exceptions.ExceptionDTO;
 import com.upgrade.CampsiteReservations.reservations.dto.ReservationDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,15 +140,15 @@ class ReservationControllerTest {
 
     @Test
     void shouldSaveNewReservation() {
-        ResponseEntity<ReservationDTO> responseEntity = createNewReservation();
+        ResponseEntity<ReservationDTO> responseEntity = createNewReservation(LocalDate.now(), LocalDate.now().plusDays(2));
         assertThat(responseEntity.getBody()).isNotNull();
         assertThat(responseEntity.getBody().getId()).isNotNull();
     }
 
-    private ResponseEntity<ReservationDTO> createNewReservation() {
+    private ResponseEntity<ReservationDTO> createNewReservation(LocalDate from, LocalDate until) {
         ReservationDTO reservationDTO = new ReservationDTO();
-        reservationDTO.setArrivalDate(LocalDate.now().plusDays(10));
-        reservationDTO.setDepartureDate(LocalDate.now().plusDays(12));
+        reservationDTO.setArrivalDate(from);
+        reservationDTO.setDepartureDate(until);
         reservationDTO.setName("name");
         reservationDTO.setEmail("email@email.com");
         HttpEntity<ReservationDTO> request = new HttpEntity<>(reservationDTO);
@@ -162,10 +162,10 @@ class ReservationControllerTest {
 
     @Test
     void updateReservation() {
-        ResponseEntity<ReservationDTO> response = createNewReservation();
+        ResponseEntity<ReservationDTO> response = createNewReservation(LocalDate.now().plusDays(12), LocalDate.now().plusDays(14));
         ReservationDTO reservationDTO = response.getBody();
         assertThat(reservationDTO).isNotNull();
-        LocalDate arrivalDate = LocalDate.now().plusDays(9);
+        LocalDate arrivalDate = LocalDate.now().plusDays(13);
         reservationDTO.setArrivalDate(arrivalDate);
         HttpEntity<ReservationDTO> request = new HttpEntity<>(reservationDTO);
         ResponseEntity<ReservationDTO> responseEntity = restTemplate.exchange(
@@ -180,7 +180,7 @@ class ReservationControllerTest {
 
     @Test
     void cancelReservation() {
-        ResponseEntity<ReservationDTO> response = createNewReservation();
+        ResponseEntity<ReservationDTO> response = createNewReservation(LocalDate.now().plusDays(10), LocalDate.now().plusDays(12));
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotNull();
         restTemplate.delete(getBaseUrl() + "/" + response.getBody().getId());

@@ -1,4 +1,4 @@
-package com.upgrade.CampsiteReservations.execeptions;
+package com.upgrade.CampsiteReservations.exceptions;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
@@ -13,13 +13,10 @@ public class ExceptionDTO {
   )
   private String error;
   @ApiModelProperty(
-      notes = "Detailed description about the error, such as \"Age may not be negative.\""
+      notes = "Detailed description about the error, such as \"The booking period cannot be longer than three days.\""
   )
   private String errorDetails;
-  @ApiModelProperty(
-      notes = "High-level error code as an enumeration, such as INVALID_AGE."
-  )
-  private String errorCode;
+
   @ApiModelProperty(
       notes = "HTTP status code, such as 400."
   )

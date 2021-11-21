@@ -14,7 +14,7 @@ import java.util.List;
 public interface CampsiteAvailabilityRepository extends JpaRepository<CampsiteAvailability, Long> {
 
 
-  @Cacheable(value = RedisCacheConfig.BUSY_DAYS_BY_MONTH)
+  @Cacheable(value = RedisCacheConfig.BUSY_DAYS_BY_MONTH, key = "new org.springframework.cache.interceptor.SimpleKey(#monthStart, #monthEnd)")
   List<CampsiteAvailability> findAllByDayBetween(LocalDate monthStart, LocalDate monthEnd);
 
   void deleteAllByReservation(Reservation reservation);

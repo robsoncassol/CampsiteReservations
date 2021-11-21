@@ -1,20 +1,20 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
-import com.jupitertools.springtestredis.RedisTestContainer;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.interceptor.SimpleKeyGenerator;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 
-@SpringBootTest
-@RedisTestContainer
+@ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
 
   @Mock

@@ -1,8 +1,13 @@
 package com.upgrade.CampsiteReservations.reservations.controller;
 
+import com.upgrade.CampsiteReservations.exceptions.ExceptionDTO;
 import com.upgrade.CampsiteReservations.reservations.dto.ReservationDTO;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.service.ReservationService;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,15 +30,26 @@ public class ReservationController {
   private ReservationService reservationService;
   private ReservationMapper reservationMapper;
 
-
   public ReservationController(ReservationService reservationService, ReservationMapper reservationMapper) {
     this.reservationService = reservationService;
     this.reservationMapper = reservationMapper;
   }
 
+  @ApiOperation(
+      value = "Get all available dates in the selected period",
+      nickname = "getAvailableDates",
+      response = LocalDate.class
+  )
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Available dates retrieved successfully", response = LocalDate.class),
+      @ApiResponse(code = 400, message = "selected period is invalid", response = ExceptionDTO.class)
+  })
   @GetMapping
-  public ResponseEntity<List<LocalDate>> listAvailableDates(@RequestParam("from") LocalDate from,
-                                                            @RequestParam("until") LocalDate until) {
+  public ResponseEntity<List<LocalDate>> getAvailableDates(
+      @ApiParam(value = "Start date of desired period (expected format ISO-8601)")
+      @RequestParam("from") LocalDate from,
+      @ApiParam(value = "End date of desired period (expected format ISO-8601)")
+      @RequestParam("until") LocalDate until) {
 
     List<LocalDate> availableDates = reservationService.getAvailableDates(from, until);
     if (availableDates.isEmpty()) {
@@ -42,12 +58,39 @@ public class ReservationController {
     return ResponseEntity.ok(availableDates);
   }
 
+  @ApiOperation(
+      value = "Book the campsite for the selected dates",
+      nickname = "bookCampsite",
+      response = ReservationDTO.class
+  )
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Return a ReservationDTO with an unique id", response = ReservationDTO.class),
+      @ApiResponse(code = 400, message = "Invalid parameters", response = ExceptionDTO.class)
+  })
   @PostMapping
-  public ResponseEntity<ReservationDTO> bookCampsite(@RequestBody @Validated ReservationDTO reservationDTO) {
+  public ResponseEntity<ReservationDTO> bookCampsite(
+          @ApiParam(value = "Reservation data", example = "{\n" +
+              "  \"arrivalDate\": \"2021-11-20\",\n" +
+              "  \"departureDate\": \"2021-11-23\",\n" +
+              "  \"email\": \"john@mail.com\",\n" +
+              "  \"name\": \"John Smith\"\n" +
+              "}")
+          @RequestBody
+          @Validated
+          ReservationDTO reservationDTO) {
     Reservation reservation = reservationService.bookCampsite(reservationMapper.toEntity(reservationDTO));
     return ResponseEntity.ok(reservationMapper.toDTO(reservation));
   }
 
+  @ApiOperation(
+      value = "Get the reservation by id",
+      nickname = "getReservationById",
+      response = ReservationDTO.class
+  )
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Success return a ReservationDTO", response = ReservationDTO.class),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
   @GetMapping("/{id}")
   public ResponseEntity<ReservationDTO> getReservationById(@PathVariable("id") Long id) {
     return reservationService.getReservationById(id)
@@ -55,6 +98,16 @@ public class ReservationController {
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
+  @ApiOperation(
+      value = "Update the reservation",
+      nickname = "updateReservation",
+      response = ReservationDTO.class
+  )
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Success return a ReservationDTO", response = ReservationDTO.class),
+      @ApiResponse(code = 404, message = "Resource not found"),
+      @ApiResponse(code = 400, message = "Invalid parameters", response = ExceptionDTO.class)
+  })
   @PutMapping("/{id}")
   public ResponseEntity<ReservationDTO> updateReservation(@PathVariable("id") Long id, @RequestBody @Validated ReservationDTO reservationDTO) {
     return reservationService.getReservationById(id)
@@ -63,11 +116,19 @@ public class ReservationController {
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
+  @ApiOperation(
+      value = "Cancel the reservation",
+      nickname = "cancelReservation"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Reservation was successfully cancelled", response = ReservationDTO.class),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
   @DeleteMapping("/{id}")
-  public ResponseEntity<Boolean> cancelReservation(@PathVariable("id") Long id) {
+  public ResponseEntity cancelReservation(@PathVariable("id") Long id) {
     return reservationService.getReservationById(id)
         .map(r -> reservationService.cancelReservation(r))
-        .map(ResponseEntity::ok)
+        .map(r -> ResponseEntity.ok().build())
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 

@@ -3,6 +3,7 @@ package com.upgrade.CampsiteReservations.reservations.service;
 import com.upgrade.CampsiteReservations.reservations.model.CampsiteAvailability;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.repository.CampsiteAvailabilityRepository;
+import com.upgrade.CampsiteReservations.reservations.service.cache.BusyDaysCacheHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cache.CacheManager;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,7 +32,7 @@ class CampsiteAvailabilityServiceTest {
   private CampsiteAvailabilityRepository campsiteAvailabilityRepository;
 
   @Mock
-  private CacheManager cacheManager;
+  private BusyDaysCacheHandler cacheHandler;
 
   @BeforeEach
   void setup(){

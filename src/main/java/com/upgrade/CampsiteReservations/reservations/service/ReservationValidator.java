@@ -1,6 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
-import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidReservationDatesException;
+import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidPeriodException;
 import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidSearchPeriodException;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,15 +26,15 @@ public class ReservationValidator {
   public boolean validated(Reservation reservation) {
     Period period = Period.between(reservation.getArrivalDate(), reservation.getDepartureDate());
     if(period.isNegative()){
-      throw new InvalidReservationDatesException("Arrival date is after departure date");
+      throw new InvalidPeriodException("Arrival date is after departure date");
     }
 
     if(ChronoUnit.DAYS.between(reservation.getArrivalDate(),reservation.getDepartureDate()) > maxAllowedPeriodInDays){
-      throw new InvalidReservationDatesException(String.format("The booking period cannot be longer than %d days",maxAllowedPeriodInDays));
+      throw new InvalidPeriodException(String.format("The booking period cannot be longer than %d days",maxAllowedPeriodInDays));
     }
 
     if(period.isZero()){
-      throw new InvalidReservationDatesException("The arrival date is the same as the departure date");
+      throw new InvalidPeriodException("The arrival date is the same as the departure date");
     }
 
     return true;

@@ -1,6 +1,7 @@
 package com.upgrade.CampsiteReservations.config;
 
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -10,6 +11,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import java.time.Duration;
 
 @Configuration
+@EnableCaching
 public class RedisCacheConfig {
 
   public static final String BUSY_DAYS_BY_MONTH = "busyDaysByMonth";

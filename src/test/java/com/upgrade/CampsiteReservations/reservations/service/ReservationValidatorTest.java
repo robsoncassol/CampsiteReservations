@@ -1,6 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
-import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidReservationDatesException;
+import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidPeriodException;
 import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidSearchPeriodException;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import org.junit.jupiter.api.Assertions;
@@ -25,7 +25,7 @@ class ReservationValidatorTest {
     reservation.setArrivalDate(LocalDate.now().plusDays(10));
     reservation.setDepartureDate(LocalDate.now().plusDays(10));
 
-    InvalidReservationDatesException exception = Assertions.assertThrows(InvalidReservationDatesException.class,
+    InvalidPeriodException exception = Assertions.assertThrows(InvalidPeriodException.class,
         () -> new ReservationValidator(3,365).validated(reservation));
 
     Assertions.assertEquals("The arrival date is the same as the departure date", exception.getErrorDetails());
@@ -37,7 +37,7 @@ class ReservationValidatorTest {
     reservation.setArrivalDate(LocalDate.now().plusDays(10));
     reservation.setDepartureDate(LocalDate.now().plusDays(5));
 
-    InvalidReservationDatesException exception = Assertions.assertThrows(InvalidReservationDatesException.class,
+    InvalidPeriodException exception = Assertions.assertThrows(InvalidPeriodException.class,
         () -> new ReservationValidator(3,365).validated(reservation));
 
     Assertions.assertEquals("Arrival date is after departure date", exception.getErrorDetails());
@@ -49,7 +49,7 @@ class ReservationValidatorTest {
     reservation.setArrivalDate(LocalDate.now().plusDays(10));
     reservation.setDepartureDate(LocalDate.now().plusDays(20));
 
-    InvalidReservationDatesException exception = Assertions.assertThrows(InvalidReservationDatesException.class,
+    InvalidPeriodException exception = Assertions.assertThrows(InvalidPeriodException.class,
         () -> new ReservationValidator(3,365).validated(reservation));
 
     Assertions.assertEquals("The booking period cannot be longer than 3 days", exception.getErrorDetails());

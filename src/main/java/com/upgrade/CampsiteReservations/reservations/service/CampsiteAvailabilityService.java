@@ -1,11 +1,10 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
-import com.upgrade.CampsiteReservations.config.RedisCacheConfig;
+import com.upgrade.CampsiteReservations.reservations.exceptions.PeriodIsNoLongerAvailableException;
 import com.upgrade.CampsiteReservations.reservations.model.CampsiteAvailability;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.repository.CampsiteAvailabilityRepository;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
+import com.upgrade.CampsiteReservations.reservations.service.cache.BusyDaysCacheHandler;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,6 +12,7 @@ import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,14 +20,19 @@ import java.util.stream.Stream;
 public class CampsiteAvailabilityService {
 
   private CampsiteAvailabilityRepository campsiteAvailabilityRepository;
-  private CacheManager cacheManager;
+  private BusyDaysCacheHandler cacheHandler;
 
-  public CampsiteAvailabilityService(CampsiteAvailabilityRepository campsiteAvailabilityRepository, CacheManager cacheManager) {
+  public CampsiteAvailabilityService(CampsiteAvailabilityRepository campsiteAvailabilityRepository, BusyDaysCacheHandler cacheHandler) {
     this.campsiteAvailabilityRepository = campsiteAvailabilityRepository;
-    this.cacheManager = cacheManager;
+    this.cacheHandler = cacheHandler;
   }
 
-  public List<LocalDate> getBusyDaysByMonth(int year, Month month) {
+  /**
+   *
+   * set the query per month to increase the cache efficiency.
+   * @return List of days that has a reservation
+   */
+  private List<LocalDate> getBusyDaysByMonth(int year, Month month) {
     LocalDate monthStart = LocalDate.of(year, month, 1);
     LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
     return campsiteAvailabilityRepository.findAllByDayBetween(monthStart, monthEnd).stream()
@@ -51,26 +56,29 @@ public class CampsiteAvailabilityService {
       return new ArrayList<>();
     }
     List<CampsiteAvailability> campsiteAvailabilities = campsiteAvailabilityRepository.saveAll(reservations);
-    cacheEvict(reservation);
+    cacheHandler.cacheEvict(reservation);
     return campsiteAvailabilities;
   }
 
-  private void cacheEvict(Reservation reservation) {
-    Cache busyDaysByMonthCache = cacheManager.getCache(RedisCacheConfig.BUSY_DAYS_BY_MONTH);
-    if(busyDaysByMonthCache!=null) {
-      busyDaysByMonthCache.clear();
-    }
-  }
-
   private List<CampsiteAvailability> generateBusyDays(Reservation reservation) {
-    List<CampsiteAvailability> reservations = Stream.iterate(reservation.getArrivalDate(), date -> date.plusDays(1))
+    return Stream.iterate(reservation.getArrivalDate(), date -> date.plusDays(1))
         .limit(ChronoUnit.DAYS.between(reservation.getArrivalDate(), reservation.getDepartureDate()))
         .map(d -> new CampsiteAvailability(d, reservation))
         .collect(Collectors.toList());
-    return reservations;
   }
 
   public void releaseItFor(Reservation reservation) {
     campsiteAvailabilityRepository.deleteAllByReservation(reservation);
+  }
+
+  public void periodIsAvailable(Reservation reservation) {
+    List<LocalDate> busyDays = getBusyDays(reservation.getArrivalDate(), reservation.getDepartureDate());
+    Optional<LocalDate> any = Stream.iterate(reservation.getArrivalDate(), date -> date.plusDays(1))
+        .limit(ChronoUnit.DAYS.between(reservation.getArrivalDate(), reservation.getDepartureDate().plusDays(1)))
+        .filter(busyDays::contains)
+        .findAny();
+    if(any.isPresent()){
+      throw new PeriodIsNoLongerAvailableException(reservation.getArrivalDate(), reservation.getDepartureDate());
+    }
   }
 }

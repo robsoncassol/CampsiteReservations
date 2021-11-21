@@ -42,6 +42,7 @@ public class ReservationService {
   @Transactional
   public Reservation bookCampsite(Reservation reservation) {
     reservationValidator.validated(reservation);
+    campsiteAvailabilityService.periodIsAvailable(reservation);
     Reservation savedReservation = reservationRepository.save(reservation);
     campsiteAvailabilityService.createAndSave(savedReservation);
     return savedReservation;
@@ -53,6 +54,7 @@ public class ReservationService {
     reservation.setId(id);
     reservationValidator.validated(reservation);
     campsiteAvailabilityService.releaseItFor(reservation);
+    campsiteAvailabilityService.periodIsAvailable(reservation);
     Reservation savedReservation = reservationRepository.save(reservation);
     campsiteAvailabilityService.createAndSave(savedReservation);
     return savedReservation;
