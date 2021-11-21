@@ -52,11 +52,7 @@ public class ReservationController {
       @ApiParam(value = "End date of desired period (expected format ISO-8601)")
       @RequestParam("until") LocalDate until) {
 
-    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(from, until);
-    if (availableDates.isEmpty()) {
-      return ResponseEntity.noContent().build();
-    }
-    return ResponseEntity.ok(availableDates);
+    return ResponseEntity.ok(reservationService.getAvailableDates(from, until));
   }
 
   @ApiOperation(
