@@ -12,6 +12,6 @@ import java.time.LocalDate;
 public class AvailableDateDTO {
 
   private LocalDate date;
-  private Boolean isAvailable;
+  private boolean available;
 
 }

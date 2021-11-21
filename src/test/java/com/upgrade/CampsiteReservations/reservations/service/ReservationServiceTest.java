@@ -43,7 +43,7 @@ class ReservationServiceTest {
     LocalDate from = LocalDate.of(2021, Month.OCTOBER, 10);
     LocalDate to = LocalDate.of(2021, Month.OCTOBER, 20);
     List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(from, to);
-    Assertions.assertEquals(9, availableDates.stream().filter(AvailableDateDTO::getIsAvailable).count());
+    Assertions.assertEquals(9, availableDates.stream().filter(AvailableDateDTO::isAvailable).count());
   }
 
   @Test
@@ -56,7 +56,7 @@ class ReservationServiceTest {
         .thenReturn(busyDays);
 
     List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(from, to);
-    Assertions.assertEquals(30, availableDates.stream().filter(AvailableDateDTO::getIsAvailable).count());
+    Assertions.assertEquals(30, availableDates.stream().filter(AvailableDateDTO::isAvailable).count());
   }
 
 }

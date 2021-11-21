@@ -1,9 +1,11 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
+import com.upgrade.CampsiteReservations.reservations.exceptions.PeriodIsNoLongerAvailableException;
 import com.upgrade.CampsiteReservations.reservations.model.CampsiteAvailability;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.repository.CampsiteAvailabilityRepository;
 import com.upgrade.CampsiteReservations.reservations.service.cache.BusyDaysCacheHandler;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,10 +14,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.verify;
 
@@ -40,13 +46,34 @@ class CampsiteAvailabilityServiceTest {
   }
 
   @Test
-  void getBusyDaysByMonth() {
+  void testWhenPeriodIsNotAvailableShouldThrowException() {
+    LocalDate october = LocalDate.of(2021, 10, 1);
+    //All days are busy
+    Mockito.when(campsiteAvailabilityRepository.findAllByDayBetween(october,october.withDayOfMonth(october.lengthOfMonth()))).thenReturn(getCampsiteAvailabilityForTheWholeMonth(october));
+    Reservation reservation = new Reservation();
+    reservation.setArrivalDate(october.withDayOfMonth(10));
+    reservation.setDepartureDate(october.withDayOfMonth(12));
+    Assertions.assertThrows(PeriodIsNoLongerAvailableException.class,()->campsiteAvailabilityService.periodIsAvailable(reservation));
+  }
+
+  @NotNull
+  private List<CampsiteAvailability> getCampsiteAvailabilityForTheWholeMonth(LocalDate month) {
+    Reservation reservation = new Reservation();
+    return Stream.iterate(month.withDayOfMonth(1), date -> date.plusDays(1))
+        .limit(month.lengthOfMonth())
+        .map(d -> new CampsiteAvailability(d, reservation))
+        .collect(Collectors.toList());
   }
 
   @Test
-  void getBusyDays() {
+  void testWhenPeriodIsAvailableShouldNotThrowException() {
+    //All days are available
+    Mockito.when(campsiteAvailabilityRepository.findAllByDayBetween(Mockito.any(),Mockito.any())).thenReturn(new ArrayList<>());
+    Reservation reservation = new Reservation();
+    reservation.setArrivalDate(LocalDate.now());
+    reservation.setDepartureDate(LocalDate.now().plusDays(1));
+    campsiteAvailabilityService.periodIsAvailable(reservation);
   }
-
 
   @Test
   void testCreateAndSave() {
@@ -59,14 +86,4 @@ class CampsiteAvailabilityServiceTest {
     Assertions.assertEquals(10, captor.getValue().size());
   }
 
-  @Test
-  void testUpdateCampsiteAvailability() {
-    Reservation reservation = new Reservation();
-    reservation.setArrivalDate(LocalDate.of(2021, 11, 10));
-    reservation.setDepartureDate(LocalDate.of(2021, 11, 20));
-    campsiteAvailabilityService.createAndSave(reservation);
-    verify(campsiteAvailabilityRepository).saveAll(captor.capture());
-    Assertions.assertNotNull(captor.getValue());
-    Assertions.assertEquals(10, captor.getValue().size());
-  }
 }
