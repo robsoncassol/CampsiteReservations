@@ -1,8 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
@@ -23,8 +21,6 @@ import java.util.Objects;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 public class CampsiteAvailability implements Serializable {
 
   @Id
