@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("reservations")
@@ -121,12 +122,15 @@ public class ReservationController {
       @ApiResponse(code = 200, message = "Reservation was successfully cancelled", response = ReservationDTO.class),
       @ApiResponse(code = 404, message = "Resource not found")
   })
+
   @DeleteMapping("/{id}")
   public ResponseEntity cancelReservation(@PathVariable("id") Long id) {
-    return reservationService.getReservationById(id)
-        .map(r -> reservationService.cancelReservation(r))
-        .map(r -> ResponseEntity.ok().build())
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    Optional<Reservation> optionalReservation = reservationService.getReservationById(id);
+    if(optionalReservation.isEmpty()){
+      return ResponseEntity.notFound().build();
+    }
+    reservationService.cancelReservation(optionalReservation.get());
+    return ResponseEntity.ok().build();
   }
 
 

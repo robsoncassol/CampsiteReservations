@@ -66,9 +66,8 @@ public class ReservationService {
   }
 
   @Transactional
-  public Boolean cancelReservation(Reservation reservation) {
+  public void cancelReservation(Reservation reservation) {
     campsiteAvailabilityService.releaseItFor(reservation);
     reservationRepository.delete(reservation);
-    return true;
   }
 }
