@@ -1,7 +1,7 @@
 package com.upgrade.CampsiteReservations.reservations.model;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Entity;
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Entity
 @Setter
 @Getter
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class Reservation implements Serializable {
 
   @Id

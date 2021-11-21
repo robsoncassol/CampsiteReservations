@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class RestResponseEntityExceptionHandler{
 
 
-    @ExceptionHandler({ MethodArgumentNotValidException.class })
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionDTO> handleConstraintViolationException(MethodArgumentNotValidException e) {
         log.warn("Exception was thrown processing request: {}",e.getMessage(), e);
          final var dto = ExceptionDTO.builder()
@@ -26,7 +26,7 @@ public class RestResponseEntityExceptionHandler{
             .body(dto);
     }
 
-    @ExceptionHandler({ BusinessValidationException.class })
+    @ExceptionHandler(BusinessValidationException.class)
     public ResponseEntity<ExceptionDTO> handleInconsistentReservationDatesException(BusinessValidationException e) {
         log.warn("Exception was thrown processing request: {}",e.getMessage(), e);
          final var dto = ExceptionDTO.builder()

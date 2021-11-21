@@ -27,7 +27,7 @@ public class ReservationDTO {
   private String name;
 
   @NotEmpty(message = "Email can't be empty")
-  @Email
+  @Email(message = "must be a well-formed email address")
   @ApiModelProperty(
       notes = "The email where the reservation will be sent"
   )
