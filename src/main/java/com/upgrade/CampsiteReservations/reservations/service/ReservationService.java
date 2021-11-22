@@ -1,5 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
+import com.upgrade.CampsiteReservations.LocalDateUtil;
 import com.upgrade.CampsiteReservations.reservations.dto.AvailableDateDTO;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.model.ReservationDate;
@@ -60,6 +61,7 @@ public class ReservationService {
   public Reservation updateReservation(Long id, Reservation reservation) {
     reservationValidator.validated(reservation);
     Reservation reservationDb = reservationRepository.getById(id);
+    reservationDatesService.periodIsAvailable(reservation, reservationDb.getReservationDates());
     reservationDb.setArrivalDate(reservation.getArrivalDate());
     reservationDb.setDepartureDate(reservation.getDepartureDate());
     reservationDb.setName(reservation.getName());
@@ -71,8 +73,8 @@ public class ReservationService {
   }
 
   public List<ReservationDate> generateDates(Reservation reservation) {
-    return Stream.iterate(reservation.getArrivalDate(), date -> date.plusDays(1))
-        .limit(ChronoUnit.DAYS.between(reservation.getArrivalDate(),reservation.getDepartureDate()))
+    return LocalDateUtil.getDaysBetweenDates(reservation)
+        .stream()
         .map(d -> new ReservationDate(d,reservation))
         .collect(Collectors.toList());
   }

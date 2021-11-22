@@ -15,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 @SpringBootTest
@@ -95,9 +94,7 @@ class ReservationServiceDBTest {
   @Test
   void testAfterReservationUpdateTheNumberOfBusyDaysShouldReflectIt() {
     LocalDate today = LocalDate.now();
-    LocalDate arrival = today.plusDays(10);
-    LocalDate departure = today.plusDays(13);
-    Reservation reservation = saveReservation(arrival, departure);
+    Reservation reservation = saveReservation(today.plusDays(10), today.plusDays(13));
 
     List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(today,today.plusMonths(1));
     Assertions.assertEquals(3,availableDates.stream().filter(a -> !a.isAvailable()).count());
@@ -106,6 +103,16 @@ class ReservationServiceDBTest {
     reservationService.updateReservation(reservation.getId(),reservation);
     availableDates = reservationService.getAvailableDates(today,today.plusMonths(1));
     Assertions.assertEquals(2,availableDates.stream().filter(a -> !a.isAvailable()).count());
+  }
+
+  @Test
+  void testUpdateReservationToAnInvalidPeriod() {
+    LocalDate today = LocalDate.now();
+    saveReservation(today.plusDays(10), today.plusDays(13));
+    Reservation reservation = saveReservation(today.plusDays(14), today.plusDays(15));
+    reservation.setArrivalDate(today.plusDays(12));
+    PeriodIsNoLongerAvailableException exception = Assertions.assertThrows(PeriodIsNoLongerAvailableException.class,
+        () -> reservationService.updateReservation(reservation.getId(),reservation));
   }
 
   @Test

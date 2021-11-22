@@ -1,5 +1,6 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
+import com.upgrade.CampsiteReservations.LocalDateUtil;
 import com.upgrade.CampsiteReservations.reservations.exceptions.PeriodIsNoLongerAvailableException;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.model.ReservationDate;
@@ -9,8 +10,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,8 +27,8 @@ public class ReservationDatesService {
   }
 
   /**
-   *
    * set the query per month to increase the cache efficiency.
+   *
    * @return List of days that has a reservation
    */
   private List<LocalDate> getBusyDaysByMonth(int year, Month month) {
@@ -46,15 +48,19 @@ public class ReservationDatesService {
   }
 
   public void periodIsAvailable(Reservation reservation) {
-    List<LocalDate> busyDays = getBusyDays(reservation.getArrivalDate(), reservation.getDepartureDate());
-    Optional<LocalDate> any = Stream.iterate(reservation.getArrivalDate(), date -> date.plusDays(1))
-        .limit(ChronoUnit.DAYS.between(reservation.getArrivalDate(), reservation.getDepartureDate().plusDays(1)))
-        .filter(busyDays::contains)
-        .findAny();
-    if(any.isPresent()){
-      throw new PeriodIsNoLongerAvailableException(reservation.getArrivalDate(), reservation.getDepartureDate());
-    }
+    periodIsAvailable(reservation, new HashSet<>());
   }
 
 
+  public void periodIsAvailable(Reservation newReservation, Set<ReservationDate> currentReservationDays) {
+    List<LocalDate> busyDays = getBusyDays(newReservation.getArrivalDate(), newReservation.getDepartureDate());
+    busyDays.removeAll(currentReservationDays.stream().map(r -> r.getDay()).collect(Collectors.toList()));
+    LocalDateUtil.getDaysBetweenDates(newReservation)
+        .stream()
+        .filter(busyDays::contains)
+        .findAny()
+        .ifPresent(s -> {
+          throw new PeriodIsNoLongerAvailableException(newReservation.getArrivalDate(), newReservation.getDepartureDate());
+        });
+  }
 }
