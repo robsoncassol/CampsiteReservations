@@ -44,7 +44,7 @@ public class ReservationValidator {
     }
 
     if(arrivalDate.isAfter(now.plusMonths(1))){
-      throw new InvalidPeriodException("The arrival date should be a maximum of up to 1 month in advance.");
+      throw new InvalidPeriodException("The arrival date should be a maximum of up to 1 month in advance");
     }
 
     return true;

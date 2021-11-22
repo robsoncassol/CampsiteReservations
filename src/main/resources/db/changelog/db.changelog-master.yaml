@@ -1,0 +1,84 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1637591361218-1
+      author: robsoncassol (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: reservation_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: arrival_date
+                  type: date
+              - column:
+                  name: departure_date
+                  type: date
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+            tableName: reservation
+  - changeSet:
+      id: 1637591361218-2
+      author: robsoncassol (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: reservation_date_pkey
+                  name: day
+                  type: date
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: reservation_date_pkey
+                  name: reservation_id
+                  type: BIGINT
+            tableName: reservation_date
+  - changeSet:
+      id: 1637591361218-3
+      author: robsoncassol (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: reservation_id
+            baseTableName: reservation_date
+            constraintName: fk3yy4elkxyljoj53n1t5b5h1eq
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: reservation
+            validate: true
+  - changeSet:
+      id: 1637591361218-4
+      author: robsoncassol (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: day
+            constraintName: reservation_date_un
+            tableName: reservation_date
+  - changeSet:
+      id: 1637591361218-5
+      author: robsoncassol (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 1
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: hibernate_sequence
+            startValue: 1

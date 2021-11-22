@@ -2,7 +2,9 @@ package com.upgrade.CampsiteReservations.reservations.service;
 
 import com.upgrade.CampsiteReservations.reservations.dto.AvailableDateDTO;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
+import com.upgrade.CampsiteReservations.reservations.model.ReservationDate;
 import com.upgrade.CampsiteReservations.reservations.repository.ReservationRepository;
+import com.upgrade.CampsiteReservations.reservations.service.cache.ReservationDaysCacheHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +22,16 @@ public class ReservationService {
   private ReservationRepository reservationRepository;
   private ReservationDatesService reservationDatesService;
   private ReservationValidator reservationValidator;
+  private ReservationDaysCacheHandler cacheHandler;
 
   ReservationService(ReservationRepository reservationRepository,
-                     ReservationDatesService campsiteAvailability,
-                     ReservationValidator reservationValidator) {
+                     ReservationDatesService reservationDatesService,
+                     ReservationValidator reservationValidator,
+                     ReservationDaysCacheHandler cacheHandler) {
     this.reservationRepository = reservationRepository;
-    this.reservationDatesService = campsiteAvailability;
+    this.reservationDatesService = reservationDatesService;
     this.reservationValidator = reservationValidator;
+    this.cacheHandler = cacheHandler;
   }
 
   public List<AvailableDateDTO> getAvailableDates(LocalDate from, LocalDate to) {
@@ -43,29 +48,41 @@ public class ReservationService {
   @Transactional
   public Reservation bookCampsite(Reservation reservation) {
     reservationValidator.validated(reservation);
+    reservationDatesService.periodIsAvailable(reservation);
+    reservation.addReservationDates(generateDates(reservation));
     Reservation savedReservation = reservationRepository.save(reservation);
-    reservationDatesService.registerAvailability(savedReservation);
+    cacheHandler.cacheEvict(reservation);
     return savedReservation;
   }
 
 
   @Transactional
   public Reservation updateReservation(Long id, Reservation reservation) {
-    reservation.setId(id);
     reservationValidator.validated(reservation);
-    reservation.getReservationDates().clear();
-    reservationDatesService.periodIsAvailable(reservation);
-    reservation.addReservationDates(reservationDatesService.getDates(reservation.getArrivalDate(), reservation.getDepartureDate()));
-    return reservationRepository.save(reservation);
+    Reservation reservationDb = reservationRepository.getById(id);
+    reservationDb.setArrivalDate(reservation.getArrivalDate());
+    reservationDb.setDepartureDate(reservation.getDepartureDate());
+    reservationDb.setName(reservation.getName());
+    reservationDb.setEmail(reservation.getEmail());
+    reservationDb.getReservationDates().clear();
+    reservationDb.addReservationDates(generateDates(reservationDb));
+    cacheHandler.cacheEvict(reservation);
+    return reservationRepository.save(reservationDb);
+  }
+
+  public List<ReservationDate> generateDates(Reservation reservation) {
+    return Stream.iterate(reservation.getArrivalDate(), date -> date.plusDays(1))
+        .limit(ChronoUnit.DAYS.between(reservation.getArrivalDate(),reservation.getDepartureDate()))
+        .map(d -> new ReservationDate(d,reservation))
+        .collect(Collectors.toList());
   }
 
   public Optional<Reservation> getReservationById(Long id) {
     return reservationRepository.findById(id);
   }
 
-  @Transactional
   public void cancelReservation(Reservation reservation) {
-    reservationDatesService.releaseDays(reservation);
     reservationRepository.delete(reservation);
+    cacheHandler.cacheEvict(reservation);
   }
 }

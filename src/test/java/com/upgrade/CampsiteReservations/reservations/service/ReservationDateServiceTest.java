@@ -1,10 +1,10 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
 import com.upgrade.CampsiteReservations.reservations.exceptions.PeriodIsNoLongerAvailableException;
-import com.upgrade.CampsiteReservations.reservations.model.ReservationDates;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
+import com.upgrade.CampsiteReservations.reservations.model.ReservationDate;
 import com.upgrade.CampsiteReservations.reservations.repository.ReservationDaysRepository;
-import com.upgrade.CampsiteReservations.reservations.service.cache.BusyDaysCacheHandler;
+import com.upgrade.CampsiteReservations.reservations.service.cache.ReservationDaysCacheHandler;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,22 +23,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
-class ReservationDatesServiceTest {
+class ReservationDateServiceTest {
 
   @InjectMocks
   private ReservationDatesService reservationDatesService;
 
   @Captor
-  private ArgumentCaptor<List<ReservationDates>> captor;
+  private ArgumentCaptor<List<ReservationDate>> captor;
 
   @Mock
   private ReservationDaysRepository reservationDaysRepository;
 
   @Mock
-  private BusyDaysCacheHandler cacheHandler;
+  private ReservationDaysCacheHandler cacheHandler;
 
   @BeforeEach
   void setup(){
@@ -57,11 +55,11 @@ class ReservationDatesServiceTest {
   }
 
   @NotNull
-  private List<ReservationDates> getCampsiteAvailabilityForTheWholeMonth(LocalDate month) {
+  private List<ReservationDate> getCampsiteAvailabilityForTheWholeMonth(LocalDate month) {
     Reservation reservation = new Reservation();
     return Stream.iterate(month.withDayOfMonth(1), date -> date.plusDays(1))
         .limit(month.lengthOfMonth())
-        .map(d -> new ReservationDates(d, reservation))
+        .map(d -> new ReservationDate(d, reservation))
         .collect(Collectors.toList());
   }
 
@@ -75,15 +73,5 @@ class ReservationDatesServiceTest {
     reservationDatesService.periodIsAvailable(reservation);
   }
 
-  @Test
-  void testCreateAndSave() {
-    Reservation reservation = new Reservation();
-    reservation.setArrivalDate(LocalDate.of(2021, 11, 10));
-    reservation.setDepartureDate(LocalDate.of(2021, 11, 20));
-    reservationDatesService.registerAvailability(reservation);
-    verify(reservationDaysRepository).saveAll(captor.capture());
-    Assertions.assertNotNull(captor.getValue());
-    Assertions.assertEquals(10, captor.getValue().size());
-  }
 
 }

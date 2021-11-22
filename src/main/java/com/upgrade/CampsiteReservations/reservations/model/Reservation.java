@@ -4,10 +4,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Setter
@@ -23,10 +29,10 @@ public class Reservation implements Serializable {
   private LocalDate arrivalDate;
   private LocalDate departureDate;
 
-  @OneToMany(mappedBy = "reservation", orphanRemoval = true)
-  private List<ReservationDates> reservationDates;
+  @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL,orphanRemoval = true)
+  private Set<ReservationDate> reservationDates = new HashSet<>();
 
-  public void addReservationDates(List<ReservationDates> dates) {
+  public void addReservationDates(List<ReservationDate> dates) {
     dates.forEach(d -> d.setReservation(this));
     reservationDates.addAll(dates);
   }
