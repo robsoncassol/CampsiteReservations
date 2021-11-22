@@ -37,6 +37,16 @@ public class ReservationValidator {
       throw new InvalidPeriodException("The arrival date is the same as the departure date");
     }
 
+    LocalDate arrivalDate = reservation.getArrivalDate();
+    LocalDate now = LocalDate.now();
+    if(arrivalDate.isBefore(now.plusDays(1))){
+      throw new InvalidPeriodException("The arrival date should be minimum 1 day(s) ahead");
+    }
+
+    if(arrivalDate.isAfter(now.plusMonths(1))){
+      throw new InvalidPeriodException("The arrival date should be a maximum of up to 1 month in advance");
+    }
+
     return true;
   }
 

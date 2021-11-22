@@ -18,7 +18,7 @@ import java.util.List;
 class ReservationServiceTest {
 
   @Mock
-  private CampsiteAvailabilityService campsiteAvailabilityService;
+  private ReservationDatesService reservationDatesService;
 
   @Mock
   private ReservationValidator reservationValidator;
@@ -39,7 +39,7 @@ class ReservationServiceTest {
   void testGetAvailableDatesWithTwoBusyDays() {
     List<LocalDate> busyDays = Lists.list(LocalDate.of(2021, Month.OCTOBER, 11),
         LocalDate.of(2021, Month.OCTOBER, 18));
-    Mockito.when(campsiteAvailabilityService.getBusyDays(Mockito.any(), Mockito.any())).thenReturn(busyDays);
+    Mockito.when(reservationDatesService.getBusyDays(Mockito.any(), Mockito.any())).thenReturn(busyDays);
     LocalDate from = LocalDate.of(2021, Month.OCTOBER, 10);
     LocalDate to = LocalDate.of(2021, Month.OCTOBER, 20);
     List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(from, to);
@@ -52,7 +52,7 @@ class ReservationServiceTest {
         LocalDate.of(2021, Month.DECEMBER, 18));
     LocalDate from = LocalDate.of(2021, Month.DECEMBER, 10);
     LocalDate to = LocalDate.of(2022, Month.JANUARY, 10);
-    Mockito.when(campsiteAvailabilityService.getBusyDays(from, to))
+    Mockito.when(reservationDatesService.getBusyDays(from, to))
         .thenReturn(busyDays);
 
     List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(from, to);

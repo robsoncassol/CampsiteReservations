@@ -1,8 +1,11 @@
 package com.upgrade.CampsiteReservations.reservations.service;
 
+import com.upgrade.CampsiteReservations.LocalDateUtil;
 import com.upgrade.CampsiteReservations.reservations.dto.AvailableDateDTO;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
+import com.upgrade.CampsiteReservations.reservations.model.ReservationDate;
 import com.upgrade.CampsiteReservations.reservations.repository.ReservationRepository;
+import com.upgrade.CampsiteReservations.reservations.service.cache.ReservationDaysCacheHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,20 +21,23 @@ public class ReservationService {
 
 
   private ReservationRepository reservationRepository;
-  private CampsiteAvailabilityService campsiteAvailabilityService;
+  private ReservationDatesService reservationDatesService;
   private ReservationValidator reservationValidator;
+  private ReservationDaysCacheHandler cacheHandler;
 
   ReservationService(ReservationRepository reservationRepository,
-                     CampsiteAvailabilityService campsiteAvailability,
-                     ReservationValidator reservationValidator) {
+                     ReservationDatesService reservationDatesService,
+                     ReservationValidator reservationValidator,
+                     ReservationDaysCacheHandler cacheHandler) {
     this.reservationRepository = reservationRepository;
-    this.campsiteAvailabilityService = campsiteAvailability;
+    this.reservationDatesService = reservationDatesService;
     this.reservationValidator = reservationValidator;
+    this.cacheHandler = cacheHandler;
   }
 
   public List<AvailableDateDTO> getAvailableDates(LocalDate from, LocalDate to) {
     reservationValidator.validateAvailableDatesRange(from,to);
-    List<LocalDate> busyDays = campsiteAvailabilityService.getBusyDays(from, to);
+    List<LocalDate> busyDays = reservationDatesService.getBusyDays(from, to);
 
     return Stream.iterate(from, date -> date.plusDays(1))
         .limit(ChronoUnit.DAYS.between(from, to.plusDays(1)))
@@ -43,31 +49,42 @@ public class ReservationService {
   @Transactional
   public Reservation bookCampsite(Reservation reservation) {
     reservationValidator.validated(reservation);
-    campsiteAvailabilityService.periodIsAvailable(reservation);
+    reservationDatesService.periodIsAvailable(reservation);
+    reservation.addReservationDates(generateDates(reservation));
     Reservation savedReservation = reservationRepository.save(reservation);
-    campsiteAvailabilityService.createAndSave(savedReservation);
+    cacheHandler.cacheEvict(reservation);
     return savedReservation;
   }
 
 
   @Transactional
   public Reservation updateReservation(Long id, Reservation reservation) {
-    reservation.setId(id);
     reservationValidator.validated(reservation);
-    campsiteAvailabilityService.releaseItFor(reservation);
-    campsiteAvailabilityService.periodIsAvailable(reservation);
-    Reservation savedReservation = reservationRepository.save(reservation);
-    campsiteAvailabilityService.createAndSave(savedReservation);
-    return savedReservation;
+    Reservation reservationDb = reservationRepository.getById(id);
+    reservationDatesService.periodIsAvailable(reservation, reservationDb.getReservationDates());
+    reservationDb.setArrivalDate(reservation.getArrivalDate());
+    reservationDb.setDepartureDate(reservation.getDepartureDate());
+    reservationDb.setName(reservation.getName());
+    reservationDb.setEmail(reservation.getEmail());
+    reservationDb.getReservationDates().clear();
+    reservationDb.addReservationDates(generateDates(reservationDb));
+    cacheHandler.cacheEvict(reservation);
+    return reservationRepository.save(reservationDb);
+  }
+
+  public List<ReservationDate> generateDates(Reservation reservation) {
+    return LocalDateUtil.getDaysBetweenDates(reservation)
+        .stream()
+        .map(d -> new ReservationDate(d,reservation))
+        .collect(Collectors.toList());
   }
 
   public Optional<Reservation> getReservationById(Long id) {
     return reservationRepository.findById(id);
   }
 
-  @Transactional
   public void cancelReservation(Reservation reservation) {
-    campsiteAvailabilityService.releaseItFor(reservation);
     reservationRepository.delete(reservation);
+    cacheHandler.cacheEvict(reservation);
   }
 }

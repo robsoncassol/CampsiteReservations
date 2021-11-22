@@ -4,10 +4,15 @@ import com.jupitertools.springtestredis.RedisTestContainer;
 import com.upgrade.CampsiteReservations.reservations.dto.AvailableDateDTO;
 import com.upgrade.CampsiteReservations.reservations.exceptions.PeriodIsNoLongerAvailableException;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
+import com.upgrade.CampsiteReservations.reservations.model.ReservationDate;
+import com.upgrade.CampsiteReservations.reservations.repository.ReservationRepository;
+import com.upgrade.CampsiteReservations.reservations.service.cache.ReservationDaysCacheHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,54 +24,105 @@ class ReservationServiceDBTest {
   @Autowired
   private ReservationService reservationService;
 
-  @Test
-  void testSaveTwoReservationsInTheSamePeriod() {
-    LocalDate arrival = LocalDate.of(2021, 9, 18);
-    LocalDate departure = LocalDate.of(2021, 9, 19);
-    Reservation reservation = new Reservation();
-    reservation.setArrivalDate(arrival);
-    reservation.setDepartureDate(departure);
-    reservation.setEmail("johnwick@gmail.com");
-    reservation.setName("john wick");
-    reservationService.bookCampsite(reservation);
-    PeriodIsNoLongerAvailableException exception = Assertions.assertThrows(PeriodIsNoLongerAvailableException.class,
-        () -> reservationService.bookCampsite(reservation));
-    Assertions.assertEquals("Selected period is no longer available [2021-09-18 - 2021-09-19]",exception.getErrorDetails());
+  @Autowired
+  private ReservationDaysCacheHandler reservationDaysCacheHandler;
 
+  @Autowired
+  private ReservationRepository reservationRepository;
+
+  @AfterEach
+  void cleanUp(){
+    reservationRepository.deleteAll();
+    reservationDaysCacheHandler.cacheEvict();
+  }
+
+  @Test
+  void testShouldThrowExceptionWhenSaveTwoReservationsInTheSamePeriod() {
+    LocalDate today = LocalDate.now();
+    LocalDate arrival = today.plusDays(2);
+    LocalDate departure = today.plusDays(4);
+    Reservation reservation1 = new Reservation();
+    reservation1.setArrivalDate(arrival);
+    reservation1.setDepartureDate(departure);
+    reservation1.setEmail("johnwick@gmail.com");
+    reservation1.setName("john wick");
+    Reservation reservation2 = new Reservation();
+    reservation2.setArrivalDate(arrival);
+    reservation2.setDepartureDate(departure);
+    reservation2.setEmail("jackwick@gmail.com");
+    reservation2.setName("jack wick");
+    reservationService.bookCampsite(reservation1);
+    PeriodIsNoLongerAvailableException exception = Assertions.assertThrows(PeriodIsNoLongerAvailableException.class,
+        () -> reservationService.bookCampsite(reservation2));
+    Assertions.assertEquals(String.format("Selected period is no longer available [%s - %s]",arrival,departure),exception.getErrorDetails());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenSaveTwoReservationInTheSamePeriod(){
+    LocalDate today = LocalDate.now();
+    LocalDate arrival = today.plusDays(2);
+    LocalDate departure = today.plusDays(3);
+    Reservation reservation1 = new Reservation();
+    reservation1.setArrivalDate(arrival);
+    reservation1.setDepartureDate(departure);
+    reservation1.setEmail("johnwick@gmail.com");
+    reservation1.setName("john wick");
+    reservation1.addReservationDates(List.of(new ReservationDate(arrival)));
+    Reservation reservation2 = new Reservation();
+    reservation2.setArrivalDate(arrival);
+    reservation2.setDepartureDate(departure);
+    reservation2.setEmail("jackwick@gmail.com");
+    reservation2.setName("jack wick");
+    reservation2.addReservationDates(List.of(new ReservationDate(arrival)));
+    reservationRepository.save(reservation1);
+    DataIntegrityViolationException exception = Assertions.assertThrows(DataIntegrityViolationException.class,
+        () -> reservationRepository.save(reservation2));
+    org.assertj.core.api.Assertions.assertThat(exception).hasMessageContaining("RESERVATION_DATE_UN");
   }
 
   @Test
   void testCheckoutDayShouldBeConsideredAvailable() {
-    LocalDate checkoutCheckInDay = LocalDate.of(2021, 11, 18);
-    saveReservation(LocalDate.of(2021, 11, 15), checkoutCheckInDay);
-    saveReservation(checkoutCheckInDay, LocalDate.of(2021, 11, 21));
-    LocalDate novemberFirst = LocalDate.of(2021, 11, 1);
-    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(novemberFirst, novemberFirst.withDayOfMonth(novemberFirst.lengthOfMonth()));
+    LocalDate today = LocalDate.now();
+    LocalDate checkoutCheckInDay = today.plusDays(7);
+    saveReservation(today.plusDays(5), checkoutCheckInDay);
+    saveReservation(checkoutCheckInDay, today.plusDays(10));
+    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(today, today.plusMonths(1));
     //assert busy days
-    Assertions.assertEquals(6,availableDates.stream().filter(a -> !a.isAvailable()).count());
+    Assertions.assertEquals(5,availableDates.stream().filter(a -> !a.isAvailable()).count());
   }
 
   @Test
   void testAfterReservationUpdateTheNumberOfBusyDaysShouldReflectIt() {
-    LocalDate arrivalDate = LocalDate.of(2021, 10, 10);
-    LocalDate departureDate = LocalDate.of(2021, 10, 13);
-    Reservation reservation = saveReservation(arrivalDate, departureDate);
-    reservation.setDepartureDate(LocalDate.of(2021,10,12));
+    LocalDate today = LocalDate.now();
+    Reservation reservation = saveReservation(today.plusDays(10), today.plusDays(13));
+
+    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(today,today.plusMonths(1));
+    Assertions.assertEquals(3,availableDates.stream().filter(a -> !a.isAvailable()).count());
+
+    reservation.setDepartureDate(today.plusDays(12));
     reservationService.updateReservation(reservation.getId(),reservation);
-    LocalDate octoberFirst = LocalDate.of(2021, 10, 1);
-    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(octoberFirst,octoberFirst.withDayOfMonth(octoberFirst.lengthOfMonth()));
+    availableDates = reservationService.getAvailableDates(today,today.plusMonths(1));
     Assertions.assertEquals(2,availableDates.stream().filter(a -> !a.isAvailable()).count());
   }
 
   @Test
+  void testUpdateReservationToAnInvalidPeriod() {
+    LocalDate today = LocalDate.now();
+    saveReservation(today.plusDays(10), today.plusDays(13));
+    Reservation reservation = saveReservation(today.plusDays(14), today.plusDays(15));
+    reservation.setArrivalDate(today.plusDays(12));
+    PeriodIsNoLongerAvailableException exception = Assertions.assertThrows(PeriodIsNoLongerAvailableException.class,
+        () -> reservationService.updateReservation(reservation.getId(),reservation));
+  }
+
+  @Test
   void testCancelReservationShouldReleaseAllDays() {
-    LocalDate checkoutCheckInDay = LocalDate.of(2021, 11, 18);
-    Reservation reservation = saveReservation(LocalDate.of(2021, 11, 15), checkoutCheckInDay);
+    LocalDate today = LocalDate.now();
+    Reservation reservation = saveReservation(today.plusDays(1), today.plusDays(2));
 
     reservationService.cancelReservation(reservation);
 
-    LocalDate novemberFirst = LocalDate.of(2021, 11, 1);
-    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(novemberFirst, novemberFirst.withDayOfMonth(novemberFirst.lengthOfMonth()));
+    List<AvailableDateDTO> availableDates = reservationService.getAvailableDates(today, today.plusMonths(1));
     //assert busy days
     Assertions.assertEquals(0,availableDates.stream().filter(a -> !a.isAvailable()).count());
   }

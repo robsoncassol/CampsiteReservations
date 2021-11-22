@@ -14,11 +14,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class BusyDaysCacheHandler {
+public class ReservationDaysCacheHandler {
 
   private CacheManager cacheManager;
 
-  public BusyDaysCacheHandler(CacheManager cacheManager) {
+  public ReservationDaysCacheHandler(CacheManager cacheManager) {
     this.cacheManager = cacheManager;
   }
 
@@ -27,6 +27,13 @@ public class BusyDaysCacheHandler {
     if(busyDaysByMonthCache!=null) {
       List<LocalDate> affectedMonths = getAffectedMonths(reservation);
       affectedMonths.forEach(month -> busyDaysByMonthCache.evictIfPresent(getKey(month)));
+    }
+  }
+
+  public void cacheEvict() {
+    Cache busyDaysByMonthCache = cacheManager.getCache(RedisCacheConfig.BUSY_DAYS_BY_MONTH);
+    if(busyDaysByMonthCache!=null) {
+      busyDaysByMonthCache.clear();
     }
   }
 

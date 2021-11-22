@@ -44,7 +44,7 @@ class ReservationValidatorTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenTheReservationPeriodIsBiggerThanTheMaximumAllowed() {
+  void shouldThrowExceptionWhenTheReservationPeriodIsGreaterThanTheMaximumAllowed() {
     Reservation reservation = new Reservation();
     reservation.setArrivalDate(LocalDate.now().plusDays(10));
     reservation.setDepartureDate(LocalDate.now().plusDays(20));
@@ -53,6 +53,42 @@ class ReservationValidatorTest {
         () -> new ReservationValidator(3,365).validated(reservation));
 
     Assertions.assertEquals("The booking period cannot be longer than 3 days", exception.getErrorDetails());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenTheReservationIsUpTo30Days() {
+    Reservation reservation = new Reservation();
+    reservation.setArrivalDate(LocalDate.now().plusDays(32));
+    reservation.setDepartureDate(LocalDate.now().plusDays(34));
+
+    InvalidPeriodException exception = Assertions.assertThrows(InvalidPeriodException.class,
+        () -> new ReservationValidator(3,365).validated(reservation));
+
+    Assertions.assertEquals("The arrival date should be a maximum of up to 1 month in advance", exception.getErrorDetails());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenTheReservationIsEqualToday() {
+    Reservation reservation = new Reservation();
+    reservation.setArrivalDate(LocalDate.now());
+    reservation.setDepartureDate(LocalDate.now().plusDays(1));
+
+    InvalidPeriodException exception = Assertions.assertThrows(InvalidPeriodException.class,
+        () -> new ReservationValidator(3,365).validated(reservation));
+
+    Assertions.assertEquals("The arrival date should be minimum 1 day(s) ahead", exception.getErrorDetails());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenTheReservationIsInPast() {
+    Reservation reservation = new Reservation();
+    reservation.setArrivalDate(LocalDate.now().minusDays(1));
+    reservation.setDepartureDate(LocalDate.now().plusDays(1));
+
+    InvalidPeriodException exception = Assertions.assertThrows(InvalidPeriodException.class,
+        () -> new ReservationValidator(3,365).validated(reservation));
+
+    Assertions.assertEquals("The arrival date should be minimum 1 day(s) ahead", exception.getErrorDetails());
   }
 
 
@@ -66,7 +102,7 @@ class ReservationValidatorTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFromDateEqualsUtilDate() {
+  void shouldThrowExceptionWhenBothDatesAreEqual() {
     LocalDate from = LocalDate.now().plusDays(10);
     LocalDate until = LocalDate.now().plusDays(10);
 
@@ -88,7 +124,7 @@ class ReservationValidatorTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenTheSearchPeriodIsBiggerThanTheMaximumAllowed() {
+  void shouldThrowExceptionWhenTheSearchPeriodIsGreaterThanTheMaximumAllowed() {
     LocalDate from = LocalDate.now().plusDays(10);
     LocalDate until = LocalDate.now().plusDays(400);
 
