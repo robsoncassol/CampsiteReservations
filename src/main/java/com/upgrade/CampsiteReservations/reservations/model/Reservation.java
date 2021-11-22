@@ -4,11 +4,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Setter
@@ -24,4 +23,11 @@ public class Reservation implements Serializable {
   private LocalDate arrivalDate;
   private LocalDate departureDate;
 
+  @OneToMany(mappedBy = "reservation", orphanRemoval = true)
+  private List<ReservationDates> reservationDates;
+
+  public void addReservationDates(List<ReservationDates> dates) {
+    dates.forEach(d -> d.setReservation(this));
+    reservationDates.addAll(dates);
+  }
 }

@@ -141,7 +141,7 @@ class ReservationControllerTest {
 
     @Test
     void shouldSaveNewReservation() {
-        ResponseEntity<ReservationDTO> responseEntity = createNewReservation(LocalDate.now(), LocalDate.now().plusDays(2));
+        ResponseEntity<ReservationDTO> responseEntity = createNewReservation(LocalDate.now().plusDays(1), LocalDate.now().plusDays(2));
         assertThat(responseEntity.getBody()).isNotNull();
         assertThat(responseEntity.getBody().getId()).isNotNull();
     }
