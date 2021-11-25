@@ -3,6 +3,7 @@ package com.upgrade.CampsiteReservations.reservations.service;
 import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidPeriodException;
 import com.upgrade.CampsiteReservations.reservations.exceptions.InvalidSearchPeriodException;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import java.time.Period;
 import java.time.temporal.ChronoUnit;
 
 @Service
+@Log4j2
 public class ReservationValidator {
 
   private int maxAllowedPeriodInDays;
@@ -24,6 +26,7 @@ public class ReservationValidator {
   }
 
   public boolean validated(Reservation reservation) {
+    log.info("Validating reservation {}", reservation);
     Period period = Period.between(reservation.getArrivalDate(), reservation.getDepartureDate());
     if(period.isNegative()){
       throw new InvalidPeriodException("Arrival date is after departure date");
@@ -51,6 +54,7 @@ public class ReservationValidator {
   }
 
   public void validateAvailableDatesRange(LocalDate from, LocalDate to) {
+    log.info("Validating search period from:{} util:{}", from, to);
     Period period = Period.between(from, to);
     if(period.isNegative()){
       throw new InvalidSearchPeriodException("The final date is after the initial date");

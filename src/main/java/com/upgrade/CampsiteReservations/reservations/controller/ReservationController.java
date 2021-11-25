@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,6 +28,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("reservations")
+@Log4j2
 public class ReservationController {
 
   private ReservationService reservationService;
@@ -53,6 +55,7 @@ public class ReservationController {
       @ApiParam(value = "End date of desired period (expected format ISO-8601)")
       @RequestParam("until") LocalDate until) {
 
+    log.info("Search available dates from:{}  util:{}", from, until);
     return ResponseEntity.ok(reservationService.getAvailableDates(from, until));
   }
 
@@ -76,6 +79,7 @@ public class ReservationController {
           @RequestBody
           @Validated
           ReservationDTO reservationDTO) {
+    log.info("Booking new reservation {}", reservationDTO);
     Reservation reservation = reservationService.bookCampsite(reservationMapper.toEntity(reservationDTO));
     return ResponseEntity.ok(reservationMapper.toDTO(reservation));
   }
@@ -91,6 +95,7 @@ public class ReservationController {
   })
   @GetMapping("/{id}")
   public ResponseEntity<ReservationDTO> getReservationById(@PathVariable("id") Long id) {
+    log.info("Get reservation by id {}", id);
     return reservationService.getReservationById(id)
         .map(r -> ResponseEntity.ok(reservationMapper.toDTO(r)))
         .orElseGet(() -> ResponseEntity.notFound().build());
@@ -108,6 +113,7 @@ public class ReservationController {
   })
   @PutMapping("/{id}")
   public ResponseEntity<ReservationDTO> updateReservation(@PathVariable("id") Long id, @RequestBody @Validated ReservationDTO reservationDTO) {
+    log.info("Update reservation id {} - {}", id, reservationDTO);
     return reservationService.getReservationById(id)
         .map(r -> reservationService.updateReservation(r.getId(), reservationMapper.toEntity(reservationDTO)))
         .map(r -> ResponseEntity.ok(reservationMapper.toDTO(r)))
@@ -125,6 +131,7 @@ public class ReservationController {
 
   @DeleteMapping("/{id}")
   public ResponseEntity cancelReservation(@PathVariable("id") Long id) {
+    log.info("Cancel reservation id {}",id);
     Optional<Reservation> optionalReservation = reservationService.getReservationById(id);
     if(optionalReservation.isEmpty()){
       return ResponseEntity.notFound().build();

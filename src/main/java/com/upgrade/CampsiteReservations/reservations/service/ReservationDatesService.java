@@ -5,6 +5,7 @@ import com.upgrade.CampsiteReservations.reservations.exceptions.PeriodIsNoLonger
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
 import com.upgrade.CampsiteReservations.reservations.model.ReservationDate;
 import com.upgrade.CampsiteReservations.reservations.repository.ReservationDaysRepository;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@Log4j2
 public class ReservationDatesService {
 
   private ReservationDaysRepository reservationDaysRepository;
@@ -54,7 +56,8 @@ public class ReservationDatesService {
 
   public void periodIsAvailable(Reservation newReservation, Set<ReservationDate> currentReservationDays) {
     List<LocalDate> busyDays = getBusyDays(newReservation.getArrivalDate(), newReservation.getDepartureDate());
-    busyDays.removeAll(currentReservationDays.stream().map(r -> r.getDay()).collect(Collectors.toList()));
+    busyDays.removeAll(currentReservationDays.stream().map(ReservationDate::getDay).collect(Collectors.toList()));
+    log.info("Checking if the period [{},{}] is available for reservation - busy days {}",newReservation.getArrivalDate(), newReservation.getDepartureDate(), busyDays);
     LocalDateUtil.getDaysBetweenDates(newReservation)
         .stream()
         .filter(busyDays::contains)

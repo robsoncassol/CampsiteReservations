@@ -2,6 +2,7 @@ package com.upgrade.CampsiteReservations.reservations.service.cache;
 
 import com.upgrade.CampsiteReservations.config.RedisCacheConfig;
 import com.upgrade.CampsiteReservations.reservations.model.Reservation;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@Log4j2
 public class ReservationDaysCacheHandler {
 
   private CacheManager cacheManager;
@@ -23,10 +25,15 @@ public class ReservationDaysCacheHandler {
   }
 
   public void cacheEvict(Reservation reservation) {
+
     Cache busyDaysByMonthCache = cacheManager.getCache(RedisCacheConfig.BUSY_DAYS_BY_MONTH);
     if(busyDaysByMonthCache!=null) {
       List<LocalDate> affectedMonths = getAffectedMonths(reservation);
-      affectedMonths.forEach(month -> busyDaysByMonthCache.evictIfPresent(getKey(month)));
+      affectedMonths.forEach(month -> {
+        Object key = getKey(month);
+        log.info("Cache evict key:{}", key);
+        busyDaysByMonthCache.evictIfPresent(key);
+      });
     }
   }
 
