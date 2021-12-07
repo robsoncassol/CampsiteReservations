@@ -29,11 +29,23 @@ public class Reservation implements Serializable {
   private LocalDate arrivalDate;
   private LocalDate departureDate;
 
-  @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL,orphanRemoval = true)
+  @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<ReservationDate> reservationDates = new HashSet<>();
 
   public void addReservationDates(List<ReservationDate> dates) {
     dates.forEach(d -> d.setReservation(this));
     reservationDates.addAll(dates);
   }
+
+  @Override
+  public String toString() {
+    return "Reservation{" +
+        "id=" + id +
+        ", name='" + name + '\'' +
+        ", email='" + email + '\'' +
+        ", arrivalDate=" + arrivalDate +
+        ", departureDate=" + departureDate +
+        '}';
+  }
+
 }
